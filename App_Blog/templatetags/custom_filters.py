@@ -9,3 +9,4 @@ def range_filter(value):
 
 
 register.filter('range_filter', range_filter)
+

@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 import uuid
 from App_Blog.forms import CommentForm
+# from django.shortcuts import get_object_or_404
 # Create your views here.
 
 # def blog_list(request):
@@ -34,6 +35,19 @@ class BlogList(ListView):
     model = Blog
     template_name = 'App_Blog/blog_list.html'
     # queryset =Blog.objects.order_by('-publish_date')
+
+
+@login_required
+def blog_details(request, slug):
+    blog =Blog.objects.get(id=slug)
+    # all_comments = BlogComment.objects.filter(blog = blog.id)
+    # blog = Blog.objects.filter(blog=blog_id)
+    all_blogs = Blog.objects.all().order_by('-publish_date')[:10]
+
+    return render(request, 'App_Blog/blog_details.html',context={'blog':blog})
+
+
+
 
 
 
