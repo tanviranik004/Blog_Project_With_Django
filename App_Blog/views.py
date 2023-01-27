@@ -11,17 +11,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import uuid
 from App_Blog.forms import CommentForm 
 from .models import Blog
-# from django.shortcuts import get_object_or_404
-# Create your views here.
 
-# def blog_list(request):
-#     return render(request,'App_Blog/blog_list.html',context={})
 
 
 class CreateBlog(LoginRequiredMixin, CreateView):
     model = Blog
     template_name = 'App_Blog/create_blog.html'
-    fields = ('blog_title', 'blog_content', 'blog_image',)
+    fields = ['blog_title', 'blog_content', 'blog_image',]
+
 
 
     def form_valid(self, form):
@@ -37,13 +34,11 @@ class CreateBlog(LoginRequiredMixin, CreateView):
 
 
 
-
-
 class BlogList(ListView):
     context_object_name='blogs'
     model = Blog
     template_name = 'App_Blog/blog_list.html'
-    # queryset =Blog.objects.order_by('-publish_date')
+
 
 
 @login_required
@@ -51,6 +46,12 @@ def blog_details(request, slug):
     blog =Blog.objects.get(id=slug)
     all_blogs = Blog.objects.all().order_by('-publish_date')[:10]
     comment_form = CommentForm()
+    already_liked=Like.objects.filter(blog=blog, user = request.user)
+    if already_liked:
+        liked = True
+    else:
+        liked = False 
+
 
     if request.method == 'POST':
          comment_form = CommentForm(request.POST)
@@ -60,11 +61,28 @@ def blog_details(request, slug):
             comment.blog = blog
             comment.save()
             return HttpResponseRedirect(reverse('App_Blog:blog_details', kwargs={'slug':slug}))
-
-    return render(request, 'App_Blog/blog_details.html',context={'blog':blog, 'comment_form':comment_form})
-
+    return render(request, 'App_Blog/blog_details.html', context={'blog':blog, 'comment_form':comment_form, 'liked':liked})
 
 
 
+@login_required
+def liked(request, pk):
+    blog = Blog.objects.get(pk=pk)
+    user = request.user
+    already_liked = Like.objects.filter(blog=blog,user=user)
+    if not already_liked:
+        liked_post = Like(blog=blog, user=user)
+        liked_post.save()
+    return HttpResponseRedirect(reverse('App_Blog:blog_details', kwargs={'slug': blog.slug}))
 
 
+
+
+
+@login_required
+def unliked(request, pk):
+    blog = Blog.objects.get(pk=pk)
+    user = request.user
+    already_liked = Like.objects.filter(blog=blog, user=user)
+    already_liked.delete()
+    return HttpResponseRedirect(reverse('App_Blog:blog_details', kwargs={'slug': blog.slug}))

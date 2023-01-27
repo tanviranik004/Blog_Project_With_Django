@@ -1,28 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import User
-# from django.utils.text import slugify
-# from datetime import date
 from django.template.defaultfilters import slugify
-# Create your models here.
 
 class Blog(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_author')
     blog_title = models.CharField(max_length=255, verbose_name='Put a Title')
-    # slug = models.SlugField(max_length=255, unique=True)
     slug = models.CharField(max_length=1000, null=True, blank=True)
-    # post_date = models.DateField(default=date.today)
     blog_content = models.TextField(verbose_name='what is your mind!!')
-    blog_image = models.ImageField(upload_to='blog_images', verbose_name='Image', blank=True, null=True)
+    blog_image = models.ImageField(upload_to='blog_images/%Y/%M/%D/', verbose_name='Image', blank=True, null=True, default='media/blog_images/anik.png')
     publish_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
-
+ 
     class Meta:
         ordering = ['-publish_date',]
 
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name + "-" + str(self.publish_date))
+            self.slug = slugify(self.name + "-" + int(self.publish_date))
         return super().save(*args, **kwargs)
 
     def __str__(self):
